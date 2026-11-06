@@ -1,0 +1,36 @@
+_min_copier_version: "9.19.1"
+_answers_file: .copier-answers.ext-netbird.yml
+_templates_suffix: .slotjinja
+_external_data:
+  project: .copier-answers.yml
+extension_port:
+  type: int
+  default: "{{ _external_data.project.port_base + 10 }}"
+  help: Port in the project's extension block where the NetBird reverse proxy reaches this peer
+  validator: >-
+    {% if _external_data.project.port_base is defined and (extension_port < _external_data.project.port_base + 10 or extension_port > _external_data.project.port_base + 19) %}
+    Choose a port in the project's extension block (+10 through +19).
+    {% endif %}
+proxy_domain:
+  type: str
+  help: Domain of the NetBird reverse proxy cluster (e.g. proxy.example.com); apps get <name>.<domain>
+  validator: >-
+    {% if not (proxy_domain | regex_search('^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$')) %}
+    Use a domain name such as proxy.example.com.
+    {% endif %}
+name_suffix:
+  type: str
+  default: ""
+  help: Suffix that tells this host apart, appended to every public name (panel-<suffix>); empty for none
+  validator: >-
+    {% if name_suffix and not (name_suffix | regex_search('^[a-z0-9][a-z0-9-]{0,15}$')) %}
+    Use up to 16 lowercase letters, digits or dashes.
+    {% endif %}
+aliases:
+  type: yaml
+  default: {omb: bots}
+  help: Public names for app ids, as a map (app id -> name); other apps keep their id
+_exclude:
+  - copier.yml
+  - README.md
+  - .git

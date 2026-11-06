@@ -1,0 +1,15 @@
+# NetBird reverse proxy extension. The netbird client is a system service
+# (it owns the WireGuard interface), so it is not pinned here.
+[env]
+FYSO_EXT_NETBIRD_PORT = "{{ extension_port }}"
+FYSO_EXT_NETBIRD_DOMAIN = "{{ proxy_domain }}"
+FYSO_EXT_NETBIRD_SUFFIX = "{{ name_suffix }}"
+FYSO_EXT_NETBIRD_ALIASES = '{{ aliases | tojson }}'
+
+[tasks."netbird:plan"]
+description = "Show the NetBird reverse proxy services this project's apps need"
+run = "framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs plan"
+
+[tasks."netbird:sync"]
+description = "Create or update the NetBird reverse proxy services of this project's apps"
+run = "framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs apply"

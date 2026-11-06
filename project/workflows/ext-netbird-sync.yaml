@@ -1,0 +1,14 @@
+description: Publish this project's apps through the NetBird reverse proxy (plan by default)
+type: graph
+max_active_runs: 1
+params:
+  - APPLY: "false"           # true creates missing services and updates drifted ones
+working_dir: ${FYSO_ROOT}
+steps:
+  - id: sync
+    command: |
+      case "${APPLY}" in
+        true) framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs apply ;;
+        false) framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs plan ;;
+        *) echo "APPLY must be true or false" >&2; exit 1 ;;
+      esac

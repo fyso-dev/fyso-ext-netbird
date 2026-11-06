@@ -1,0 +1,64 @@
+# NetBird reverse proxy entry (fyso-ext-netbird). The proxy cluster reaches this
+# peer over WireGuard on one port; apps are told apart by their public name,
+# <name>{{ '-' ~ name_suffix if name_suffix }}.{{ proxy_domain }}, and served by the project gateway as <id>.localhost.
+http://:{$FYSO_EXT_NETBIRD_PORT} {
+	bind 0.0.0.0
+	map {re.app.1} {netbird_app} {
+{%- for id, name in aliases.items() %}
+		{{ name }} {{ id }}
+{%- endfor %}
+		default {re.app.1}
+	}
+	# A route keeps this order: Caddy otherwise runs handle before respond and abort.
+	route {
+		# Only NetBird peers (CGNAT range) and this host may connect.
+		@outside not remote_ip 100.64.0.0/10 127.0.0.1/8
+		abort @outside
+
+		import fyso_login
+
+		# The public name: the forwarded host when the proxy rewrote Host.
+		vars netbird_host {http.request.host}
+		@forwarded header X-Forwarded-Host *
+		vars @forwarded netbird_host {http.request.header.X-Forwarded-Host}
+
+		# Same-origin API calls only; upstream apps then get their internal Origin.
+		@foreignOrigin {
+			path /api/*
+			header Origin *
+			not expression `{http.request.header.Origin}.endsWith("//" + {vars.netbird_host})`
+		}
+		respond @foreignOrigin 403
+		@crossSite {
+			path /api/*
+			header Sec-Fetch-Site cross-site
+		}
+		respond @crossSite 403
+
+		@app vars_regexp app {vars.netbird_host} ^([a-z][a-z0-9-]*?){{ '-' ~ name_suffix if name_suffix }}\.{{ proxy_domain | replace('.', '\\.') }}(:[0-9]+)?$
+		handle @app {
+			# Remote launcher metadata: app links on their public names.
+			@config path /config/project.json /config/apps.json
+			handle @config {
+				@read method GET HEAD
+				handle @read {
+					uri strip_prefix /config
+					root * {$FYSO_DATA}/ext/netbird
+					file_server
+				}
+				respond 405
+			}
+			handle {
+				reverse_proxy 127.0.0.1:{$FYSO_HTTP_PORT} {
+					header_up Host {netbird_app}.localhost:{$FYSO_HTTP_PORT}
+					header_up Origin http://{netbird_app}.localhost:{$FYSO_HTTP_PORT}
+					header_up -X-Forwarded-Host
+					flush_interval -1
+				}
+			}
+		}
+		handle {
+			respond 404
+		}
+	}
+}

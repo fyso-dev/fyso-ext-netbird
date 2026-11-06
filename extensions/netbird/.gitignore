@@ -1,0 +1,2 @@
+# Keep extension-local generated files out of Git.
+*.log

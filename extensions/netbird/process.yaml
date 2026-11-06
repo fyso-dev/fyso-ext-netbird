@@ -1,0 +1,7 @@
+# Writes the remote launcher metadata once per start (app links on public names).
+version: "0.5"
+processes:
+  ext-netbird-config:
+    command: framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs config
+    availability:
+      restart: "no"
