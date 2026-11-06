@@ -13,10 +13,11 @@ extension_port:
     {% endif %}
 proxy_domain:
   type: str
-  help: Domain of the NetBird reverse proxy cluster (e.g. proxy.example.com); apps get <name>.<domain>
+  default: ""
+  help: Domain of the NetBird reverse proxy cluster (e.g. proxy.example.com); empty to use the account's only online cluster
   validator: >-
-    {% if not (proxy_domain | regex_search('^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$')) %}
-    Use a domain name such as proxy.example.com.
+    {% if proxy_domain and not (proxy_domain | regex_search('^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$')) %}
+    Use a domain name such as proxy.example.com, or leave it empty.
     {% endif %}
 name_suffix:
   type: str

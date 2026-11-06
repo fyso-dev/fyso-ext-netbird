@@ -1,6 +1,6 @@
 # NetBird reverse proxy entry (fyso-ext-netbird). The proxy cluster reaches this
 # peer over WireGuard on one port; apps are told apart by their public name,
-# <name>{{ '-' ~ name_suffix if name_suffix }}.{{ proxy_domain }}, and served by the project gateway as <id>.localhost.
+# <name>{{ '-' ~ name_suffix if name_suffix }}.<proxy domain>, and served by the project gateway as <id>.localhost.
 http://:{$FYSO_EXT_NETBIRD_PORT} {
 	bind 0.0.0.0
 	map {re.app.1} {netbird_app} {
@@ -35,7 +35,7 @@ http://:{$FYSO_EXT_NETBIRD_PORT} {
 		}
 		respond @crossSite 403
 
-		@app vars_regexp app {vars.netbird_host} ^([a-z][a-z0-9-]*?){{ '-' ~ name_suffix if name_suffix }}\.{{ proxy_domain | replace('.', '\\.') }}(:[0-9]+)?$
+		@app vars_regexp app {vars.netbird_host} ^([a-z][a-z0-9-]*?){{ '-' ~ name_suffix if name_suffix }}\.
 		handle @app {
 			# Remote launcher metadata: app links on their public names.
 			@config path /config/project.json /config/apps.json

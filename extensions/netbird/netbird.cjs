@@ -7,11 +7,13 @@ const fs = require('node:fs');
 const {execFileSync} = require('node:child_process');
 
 const env = process.env;
-const domain = env.FYSO_EXT_NETBIRD_DOMAIN;
+let domain = env.FYSO_EXT_NETBIRD_DOMAIN || '';
 const suffix = env.FYSO_EXT_NETBIRD_SUFFIX || '';
 const port = Number(env.FYSO_EXT_NETBIRD_PORT);
 const aliases = JSON.parse(env.FYSO_EXT_NETBIRD_ALIASES || '{}');
 const out = `${env.FYSO_DATA}/ext/netbird`;
+// A detected domain is remembered so each start can write the launcher links.
+if (!domain && fs.existsSync(`${out}/domain`)) domain = fs.readFileSync(`${out}/domain`, 'utf8').trim();
 
 // Apps the gateway serves as <sub>.localhost; the panel itself is "panel".
 const subdomain = url => (/^https?:\/\/([a-z][a-z0-9-]*)\.localhost(:\d+)?\/?$/.exec(url || '') || [])[1];
@@ -25,6 +27,7 @@ function exposed() {
 }
 
 function config() {
+  if (!domain) return console.log('Proxy domain unknown until the first plan or sync: remote launcher links not written.');
   const apps = readJson(`${env.FYSO_DATA}/panel/apps.json`)
     .map(a => subdomain(a.url) ? {...a, url: publicUrl(subdomain(a.url))} : a);
   const project = readJson(`${env.FYSO_DATA}/panel/project.json`);
@@ -59,6 +62,14 @@ const pick = (obj, keys) => Object.fromEntries(keys.filter(k => obj[k] !== undef
 
 async function sync(apply) {
   const {api: base, ip} = status();
+  if (!domain) {
+    // No domain configured: the account's only online proxy cluster.
+    const online = (await api(base, 'GET', '/reverse-proxies/clusters')).filter(c => c.online);
+    if (online.length !== 1) throw Error(`Found ${online.length} online proxy clusters: set proxy_domain (mise run ext:update netbird -- -d proxy_domain=…)`);
+    domain = online[0].address;
+    fs.mkdirSync(out, {recursive: true});
+    fs.writeFileSync(`${out}/domain`, `${domain}\n`);
+  }
   const peer = (await api(base, 'GET', '/peers')).find(p => p.ip === ip);
   if (!peer) throw Error(`No NetBird peer with IP ${ip}`);
   const services = await api(base, 'GET', '/reverse-proxies/services');

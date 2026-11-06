@@ -4,13 +4,18 @@ Fyso Agentic Framework extension that publishes a project's apps through the
 NetBird reverse proxy over HTTPS, one service per app, all reaching this peer
 on one port of the project's extension block.
 
+Install it from the panel (**Apps → Marketplace**) or the terminal:
+
 ```sh
-mise run ext:add <this repo> -- --vcs-ref <tag> \
-  -d proxy_domain=proxy.example.com -d name_suffix=host1
+mise run ext:add netbird                          # from the Fyso catalog
+mise run ext:add netbird -- -d name_suffix=host1  # tell this host apart
 mise run secrets            # NETBIRD_API_TOKEN
 mise run netbird:plan       # or the Dagu workflow ext-netbird-sync
 mise run netbird:sync       # creates/updates services; never deletes
 ```
+
+Answers (all optional): `proxy_domain` (empty: the account's only online proxy
+cluster, detected on the first plan or sync), `name_suffix`, `aliases`.
 
 - Public names: `<app>[-suffix].<proxy_domain>`; `aliases` renames app ids
   (default `omb: bots`). Apps are those the gateway serves as `<id>.localhost`,
