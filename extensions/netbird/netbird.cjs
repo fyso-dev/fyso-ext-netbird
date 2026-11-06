@@ -1,5 +1,6 @@
 // NetBird reverse proxy services for this project's apps (fyso-ext-netbird).
 //   config  write the remote launcher metadata (app links on public names)
+//   watch   write it now and again whenever the panel's own metadata changes
 //   plan    show the services each app needs; changes nothing
 //   apply   create missing services and update drifted ones; never deletes
 // Runs through run-ext.sh: FYSO_* and NETBIRD_API_TOKEN only.
@@ -102,8 +103,20 @@ async function sync(apply) {
   config();
 }
 
+// panel-data.cjs rewrites .data/panel on up, ext:* and fyso-update: follow it.
+function watch() {
+  config();
+  let timer;
+  fs.watch(`${env.FYSO_DATA}/panel`, (_, file) => {
+    if (!['apps.json', 'project.json'].includes(String(file))) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => { try { config(); } catch (e) { console.error(e.message); } }, 500);
+  });
+}
+
 const command = process.argv[2];
 (command === 'config' ? Promise.resolve(config()) :
+  command === 'watch' ? Promise.resolve(watch()) :
   command === 'plan' || command === 'apply' ? sync(command === 'apply') :
-  Promise.reject(Error('usage: netbird.cjs config|plan|apply')))
+  Promise.reject(Error('usage: netbird.cjs config|watch|plan|apply')))
   .catch(error => { console.error(error.message); process.exitCode = 1; });

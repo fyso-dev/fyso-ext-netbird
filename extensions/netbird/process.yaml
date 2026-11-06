@@ -1,7 +1,9 @@
-# Writes the remote launcher metadata once per start (app links on public names).
+# Keeps the remote launcher metadata (app links on public names) in step with
+# the panel's own metadata.
 version: "0.5"
 processes:
   ext-netbird-config:
-    command: framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs config
+    command: framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs watch
     availability:
-      restart: "no"
+      restart: always
+      backoff_seconds: 5
