@@ -1,10 +1,16 @@
-# NetBird private access extension. The netbird client is a system service
+# NetBird access extension. The netbird client is a system service
 # (it owns the WireGuard interface), so it is not pinned here.
+{% if access == 'https' -%}
+# HTTPS provider (framework D62): the NetBird reverse proxy terminates TLS for
+# https://<app>.<web_domain> and the project's login follows that scheme.
+[env]
+FYSO_WEB_SCHEME = "https"
 
+{% endif -%}
 [tasks."netbird:plan"]
-description = "Show the NetBird DNS records this project's web addresses need"
+description = "Show what this project's web addresses need in NetBird ({{ 'reverse proxy services' if access == 'https' else 'DNS records' }})"
 run = "framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs plan"
 
 [tasks."netbird:sync"]
-description = "Create or update the NetBird DNS records of this project's web addresses"
+description = "Create or update this project's {{ 'reverse proxy services' if access == 'https' else 'DNS records' }} in NetBird; never deletes"
 run = "framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs apply"
