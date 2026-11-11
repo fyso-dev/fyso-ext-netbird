@@ -1,8 +1,8 @@
-description: Publish this project's apps through the NetBird reverse proxy (plan by default)
+description: Point this project's web addresses at this NetBird peer (plan by default)
 type: graph
 max_active_runs: 1
 params:
-  - APPLY: "false"           # true creates missing services and updates drifted ones
+  - APPLY: "false"           # true creates missing DNS records and updates drifted ones
 working_dir: ${FYSO_ROOT}
 steps:
   - id: sync

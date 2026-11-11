@@ -1,9 +1,8 @@
-# Keeps the remote launcher metadata (app links on public names) in step with
-# the panel's own metadata.
+# Relays this peer's NetBird address to the loopback gateway on the same port.
 version: "0.5"
 processes:
-  ext-netbird-config:
-    command: framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs watch
+  ext-netbird-forward:
+    command: framework/scripts/run-ext.sh netbird -- node extensions/netbird/netbird.cjs forward
     availability:
       restart: always
       backoff_seconds: 5
