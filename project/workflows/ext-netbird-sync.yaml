@@ -1,8 +1,8 @@
-description: Point this project's web addresses at this NetBird peer (plan by default)
+description: Make this project's web addresses reach this NetBird peer, by DNS records or reverse proxy services (plan by default)
 type: graph
 max_active_runs: 1
 params:
-  - APPLY: "false"           # true creates missing DNS records and updates drifted ones
+  - APPLY: "false"           # true creates what is missing and updates what drifted; never deletes
 working_dir: ${FYSO_ROOT}
 steps:
   - id: sync

@@ -1,7 +1,15 @@
 _min_copier_version: "9.19.1"
 _answers_file: .copier-answers.ext-netbird.yml
 _templates_suffix: .slotjinja
+access:
+  type: str
+  default: private
+  help: How people reach the project
+  choices:
+    "NetBird peers only, plain HTTP inside WireGuard": private
+    "HTTPS through the NetBird reverse proxy (HTTPS provider; public unless the NetBird administrator restricts it)": https
 _exclude:
   - copier.yml
   - README.md
   - .git
+  - tests
